@@ -136,6 +136,7 @@ void AppView::Run()
     frameB = m_main->Update();
     m_deviceResources->Present(frameA);
     m_main->Render(frameB);
+    // Interestingly, uncommenting this line will prevent the error from happening: frameA = m_main->Update();
     m_deviceResources->Present(frameB);
 #endif
 }
