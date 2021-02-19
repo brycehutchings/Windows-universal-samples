@@ -136,9 +136,7 @@ void AppView::Run()
     frameB = m_main->Update();
     m_deviceResources->Present(frameA);
     m_main->Render(frameB);
-    frameA = m_main->Update();
     m_deviceResources->Present(frameB);
-    m_deviceResources->Present(frameA);
 #endif
 }
 
