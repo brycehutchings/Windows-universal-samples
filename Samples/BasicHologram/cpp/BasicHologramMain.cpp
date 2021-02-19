@@ -173,6 +173,8 @@ HolographicFrame^ BasicHologramMain::Update()
     // frame by calling CreateNextFrame.
     HolographicFrame^ holographicFrame = m_holographicSpace->CreateNextFrame();
 
+    m_holographicSpace->WaitForNextFrameReady();
+
     // Get a prediction of where holographic cameras will be when this frame
     // is presented.
     HolographicFramePrediction^ prediction = holographicFrame->CurrentPrediction;

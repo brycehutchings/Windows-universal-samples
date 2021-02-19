@@ -99,19 +99,25 @@ void AppView::Load(Platform::String^ entryPoint)
 // update, draw, and present loop, and it also oversees window message processing.
 void AppView::Run()
 {
+#if 0 // Loop-based repo
+    HolographicFrame^ nextHolographicFrame = m_main->Update();
     while (!m_windowClosed)
     {
         if (m_windowVisible && (m_holographicSpace != nullptr))
         {
             CoreWindow::GetForCurrentThread()->Dispatcher->ProcessEvents(CoreProcessEventsOption::ProcessAllIfPresent);
 
-            HolographicFrame^ holographicFrame = m_main->Update();
+            HolographicFrame^ holographicFrame = nextHolographicFrame;
 
             if (m_main->Render(holographicFrame))
             {
+                auto updateTask = std::thread([&] { nextHolographicFrame = m_main->Update(); });
+
                 // The holographic frame has an API that presents the swap chain for each
                 // holographic camera.
                 m_deviceResources->Present(holographicFrame);
+
+                updateTask.join();
             }
         }
         else
@@ -119,6 +125,20 @@ void AppView::Run()
             CoreWindow::GetForCurrentThread()->Dispatcher->ProcessEvents(CoreProcessEventsOption::ProcessOneAndAllPending);
         }
     }
+#else // Synchonous repro.
+    CoreWindow::GetForCurrentThread()->Dispatcher->ProcessEvents(CoreProcessEventsOption::ProcessAllIfPresent);
+
+    HolographicFrame^ frameA;
+    HolographicFrame^ frameB;
+
+    frameA = m_main->Update();
+    m_main->Render(frameA);
+    frameB = m_main->Update();
+    m_deviceResources->Present(frameA);
+    m_main->Render(frameB);
+    // Interestingly, uncommenting this line will prevent the error from happening: frameA = m_main->Update();
+    m_deviceResources->Present(frameB);
+#endif
 }
 
 // Terminate events do not cause Uninitialize to be called. It will be called if your IFrameworkView
